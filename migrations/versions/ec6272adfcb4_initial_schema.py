@@ -28,8 +28,8 @@ def upgrade() -> None:
     sa.Column('pricing', sa.String(length=80), nullable=False),
     sa.Column('is_featured', sa.Boolean(), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_ai_tools')),
     sa.UniqueConstraint('slug', name=op.f('uq_ai_tools_slug'))
     )
