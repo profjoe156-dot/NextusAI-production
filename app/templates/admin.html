@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NexusAI Admin</title>
+  <style>
+    :root { color-scheme: dark; --bg:#080b14; --panel:#111827; --panel2:#171f31; --text:#eef2ff; --muted:#97a3b8; --accent:#7c6cff; --accent2:#2dd4bf; --danger:#fb7185; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Inter,ui-sans-serif,system-ui,sans-serif; background:radial-gradient(circle at 15% 0%,#242057 0,transparent 30%),var(--bg); color:var(--text); }
+    .shell { max-width:1240px; margin:auto; padding:38px 24px 70px; }
+    header { display:flex; justify-content:space-between; align-items:end; gap:18px; margin-bottom:26px; }
+    h1 { margin:0; font-size:31px; letter-spacing:-.04em; } .brand { color:#a9a1ff; }
+    .muted { color:var(--muted); } button { border:0; border-radius:10px; padding:10px 14px; background:var(--accent); color:white; font-weight:700; cursor:pointer; }
+    button.secondary { background:#273149; } button.danger { background:#7f1d36; } button:hover { filter:brightness(1.1); }
+    .grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+    .card { border:1px solid #263047; border-radius:16px; background:linear-gradient(145deg,rgba(23,31,49,.95),rgba(14,20,34,.95)); padding:19px; box-shadow:0 14px 40px rgba(0,0,0,.18); }
+    .metric { font-size:30px; font-weight:800; margin-top:8px; letter-spacing:-.03em; }
+    .section { margin-top:24px; } .section-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    table { width:100%; border-collapse:collapse; font-size:14px; } th,td { text-align:left; padding:13px 10px; border-bottom:1px solid #263047; } th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
+    .badge { display:inline-block; padding:4px 8px; border-radius:999px; background:#263047; font-size:12px; } .premium { color:#5eead4; } .blocked { color:#fda4af; }
+    .actions { display:flex; gap:7px; flex-wrap:wrap; } .actions button { padding:7px 9px; font-size:12px; }
+    #toast { position:fixed; right:22px; bottom:22px; background:#202a40; padding:13px 16px; border-radius:12px; display:none; border:1px solid #39455f; }
+    @media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.table-wrap{overflow:auto}header{align-items:start;flex-direction:column}}
+  </style>
+</head>
+<body><main class="shell">
+  <header><div><div class="muted">Operations console</div><h1><span class="brand">NexusAI</span> Admin</h1></div><button class="secondary" onclick="refreshNews()">Refresh AI news</button></header>
+  <section class="grid" id="metrics"></section>
+  <section class="section card"><div class="section-head"><div><h2 style="margin:0">Users</h2><div class="muted">Newest registered accounts</div></div><button class="secondary" onclick="loadAll()">Reload</button></div>
+    <div class="table-wrap"><table><thead><tr><th>User</th><th>Telegram ID</th><th>Plan</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead><tbody id="users"></tbody></table></div>
+  </section>
+</main><div id="toast"></div>
+<script>
+const headers={'Content-Type':'application/json','X-Admin-Action':'NexusAI'};
+const fmt=n=>new Intl.NumberFormat().format(n||0);
+function toast(message){const e=document.getElementById('toast');e.textContent=message;e.style.display='block';setTimeout(()=>e.style.display='none',3000)}
+async function api(url,options={}){const r=await fetch(url,options);if(!r.ok)throw new Error((await r.json()).detail||'Request failed');return r.json()}
+async function loadStats(){const d=await api('/api/admin/stats');const cards=[['Total users',d.users],['Premium',d.premium_users],['Active · 24h',d.active_24h],['AI requests · 24h',d.ai_requests_24h],['Messages',d.messages],['Subscriptions',d.subscriptions]];document.getElementById('metrics').innerHTML=cards.map(([k,v])=>`<article class="card"><div class="muted">${k}</div><div class="metric">${fmt(v)}</div></article>`).join('')}
+function safe(s){const d=document.createElement('div');d.textContent=s??'';return d.innerHTML}
+async function loadUsers(){const rows=await api('/api/admin/users?limit=100');document.getElementById('users').innerHTML=rows.map(u=>`<tr><td><b>${safe(u.first_name)}</b><br><span class="muted">@${safe(u.username||'—')}</span></td><td>${u.telegram_id}</td><td><span class="badge ${u.is_premium?'premium':''}">${u.is_premium?'Premium':'Free'}</span></td><td><span class="badge ${u.status==='blocked'?'blocked':''}">${safe(u.status)}</span></td><td>${new Date(u.created_at).toLocaleDateString()}</td><td><div class="actions"><button onclick="premium(${u.telegram_id})">+30 days</button><button class="${u.status==='blocked'?'secondary':'danger'}" onclick="blockUser(${u.telegram_id},${u.status!=='blocked'})">${u.status==='blocked'?'Unblock':'Block'}</button></div></td></tr>`).join('')}
+async function premium(id){await api(`/api/admin/users/${id}/premium`,{method:'POST',headers,body:JSON.stringify({days:30})});toast('Premium granted');loadAll()}
+async function blockUser(id,blocked){await api(`/api/admin/users/${id}/block`,{method:'POST',headers,body:JSON.stringify({blocked})});toast(blocked?'User blocked':'User unblocked');loadAll()}
+async function refreshNews(){const d=await api('/api/admin/news/refresh',{method:'POST',headers});toast(`${d.inserted} news items added`)}
+async function loadAll(){try{await Promise.all([loadStats(),loadUsers()])}catch(e){toast(e.message)}}loadAll();
+</script></body></html>
