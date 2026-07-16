@@ -29,6 +29,12 @@ class UserRole(StrEnum):
 
 
 class UserStatus(StrEnum):import uuid
+
+from enum import StrEnum
+
+class UserStatus(StrEnum):
+    ACTIVE = "active"
+    BLOCKED = "blocked"
 from datetime import datetime
 from enum import StrEnum
 from typing import Any
