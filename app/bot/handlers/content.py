@@ -170,4 +170,4 @@ async def news_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 except BadRequest as e:
     if "Message is not modified" not in str(e):
         raise
-    )
+    
