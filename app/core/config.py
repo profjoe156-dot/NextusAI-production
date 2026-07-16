@@ -23,8 +23,8 @@ class Settings(BaseSettings):
     port: int = Field(default=8000, ge=1, le=65535)
     public_base_url: str = "http://localhost:8000"
 
-    database_url: str = "postgresql+asyncpg://nexusai:nexusai@localhost:5432/nexusai"
-    redis_url: str = "redis://localhost:6379/0"
+    database_url: str 
+    redis_url: str 
     db_pool_size: int = Field(default=10, ge=1, le=100)
     db_max_overflow: int = Field(default=20, ge=0, le=100)
 
