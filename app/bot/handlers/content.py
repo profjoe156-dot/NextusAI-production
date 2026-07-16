@@ -160,9 +160,14 @@ async def news_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         lines.append("News is being refreshed. Please check again shortly.")
     rows.append([InlineKeyboardButton("Refresh", callback_data="menu:news")])
     rows.append([InlineKeyboardButton("Back to menu", callback_data="menu:home")])
+    try:
     await query.edit_message_text(
         "\n\n".join(lines),
         parse_mode=ParseMode.HTML,
         reply_markup=InlineKeyboardMarkup(rows),
         disable_web_page_preview=True,
+    )
+except BadRequest as e:
+    if "Message is not modified" not in str(e):
+        raise
     )
