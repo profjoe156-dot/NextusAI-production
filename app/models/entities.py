@@ -28,7 +28,7 @@ class UserRole(StrEnum):
     ADMIN = "admin"
 
 
-class UserStatus(StrEnum):import uuid import uuid
+class UserStatus(StrEnum):import uuid
 from datetime import datetime
 from enum import StrEnum
 from typing import Any
